@@ -1,0 +1,41 @@
+name: Publish Gem to GitHub Packages
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Install dependencies
+        run: bundle install --jobs 4 --retry 3
+
+      - name: Build the gem
+        run: gem build *.gemspec
+
+      - name: Authenticate to GitHub Packages
+        run: |
+          mkdir -p ~/.gem
+          touch ~/.gem/credentials
+          chmod 0600 ~/.gem/credentials
+          printf -- "---\n:github: Bearer ${GITHUB_TOKEN}\n" > ~/.gem/credentials
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to GitHub Packages
+        run: |
+          gem push --key github --host https://rubygems.pkg.github.com/${{ github.repository_owner }} *.gem
