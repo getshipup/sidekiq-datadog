@@ -1,17 +1,25 @@
-inherit_gem:
-  rubocop-bsm:
-    - default.yml
-inherit_mode:
-  merge:
-    - Exclude
+inherit_from: .rubocop_todo.yml
+
+plugins:
+  - rubocop-rspec
+  - rubocop-performance
 
 AllCops:
-  TargetRubyVersion: "2.5"
+  TargetRubyVersion: "3"
+  NewCops: enable
 
 Metrics/ParameterLists:
   Max: 8
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
 Naming/FileName:
   Exclude:
     - lib/sidekiq-datadog.rb
-RSpec/MultipleMemoizedHelpers:
+
+Style/Documentation:
   Enabled: false

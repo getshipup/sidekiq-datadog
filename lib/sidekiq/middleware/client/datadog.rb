@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require 'sidekiq'
-require 'sidekiq/datadog/version'
 require 'sidekiq/datadog/tag_builder'
 require 'datadog/statsd'
 require 'socket'
@@ -44,7 +45,7 @@ module Sidekiq
           @tag_builder = Sidekiq::Datadog::TagBuilder.new(
             opts[:tags],
             skip_tags,
-            opts[:hostname],
+            opts[:hostname]
           )
         end
 

@@ -1,46 +1,44 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Sidekiq::Middleware::Client::Datadog do
   subject { described_class.new(hostname: 'test.host', statsd: statsd, tags: tags, **options) }
 
-  let(:statsd) { Mock::Statsd.new('localhost', 55555) }
+  let(:statsd) { Datadog::Statsd.new('localhost', 55_555) }
   let(:worker_class) { 'Mock::Worker' }
   let(:tags) do
     ['custom:tag', ->(worker_class, *) { "worker:#{worker_class[1..2]}" }]
   end
   let(:options) { {} }
 
-  before do
-    statsd.messages.clear
-  end
-
   it 'sends an increment event for each job enqueued' do
     subject.call(worker_class, {}, 'default', nil) { 'ok' }
-    expect(statsd.messages).to eq([
-      'sidekiq.job_enqueued:1|c|#custom:tag,worker:oc,host:test.host,env:test,name:mock/worker,'\
-        'queue:default',
-    ])
+    expect(statsd_messages).to eq([
+                                    'sidekiq.job_enqueued:1|c|#custom:tag,worker:oc,host:test.host,env:test,name:mock/worker,' \
+                                    'queue:default'
+                                  ])
   end
 
   it 'supports wrappers' do
     subject.call(worker_class, { 'wrapped' => 'wrap' }, nil, nil) { 'ok' }
-    expect(statsd.messages).to eq([
-      'sidekiq.job_enqueued:1|c|#custom:tag,worker:oc,host:test.host,env:test,name:wrap',
-    ])
+    expect(statsd_messages).to eq([
+                                    'sidekiq.job_enqueued:1|c|#custom:tag,worker:oc,host:test.host,env:test,name:wrap'
+                                  ])
   end
 
   context 'with a dynamic tag list' do
     let(:tags) do
-      ['custom:tag', ->(_w, j, *) { j['args'].map {|n| "arg:#{n}" } }]
+      ['custom:tag', ->(_w, j, *) { j['args'].map { |n| "arg:#{n}" } }]
     end
 
     it 'generates the correct tags' do
       subject.call(worker_class, { 'args' => [1, 2] }, 'default', nil) { 'ok' }
 
-      expect(statsd.messages).to eq([
-        'sidekiq.job_enqueued:1|c|#custom:tag,arg:1,arg:2,host:test.host,env:test,name:mock/worker,'\
-          'queue:default',
-      ])
+      expect(statsd_messages).to eq([
+                                      'sidekiq.job_enqueued:1|c|#custom:tag,arg:1,arg:2,host:test.host,env:test,name:mock/worker,' \
+                                      'queue:default'
+                                    ])
     end
   end
 
@@ -51,9 +49,9 @@ describe Sidekiq::Middleware::Client::Datadog do
     it 'sends metrics without the skipped tags' do
       subject.call(worker_class, {}, 'default', nil) { 'ok' }
 
-      expect(statsd.messages).to eq([
-        'sidekiq.job_enqueued:1|c|#queue:default',
-      ])
+      expect(statsd_messages).to eq([
+                                      'sidekiq.job_enqueued:1|c|#queue:default'
+                                    ])
     end
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Sidekiq
   module Datadog
     class TagBuilder
@@ -53,7 +55,7 @@ module Sidekiq
           next unless val && include_tag?(key)
 
           prefix = "#{key}:"
-          next if @tags.any? {|t| t.is_a?(String) && t.start_with?(prefix) }
+          next if @tags.any? { |t| t.is_a?(String) && t.start_with?(prefix) }
 
           @tags.push [key, val].join(':')
         end
@@ -64,7 +66,7 @@ module Sidekiq
       end
 
       def underscore(word)
-        word = word.to_s.gsub(/::/, '/')
+        word = word.to_s.gsub('::', '/')
         word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2')
         word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
         word.tr!('-', '_')

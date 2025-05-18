@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Sidekiq::Datadog::TagBuilder do
@@ -5,7 +7,7 @@ describe Sidekiq::Datadog::TagBuilder do
 
   let(:custom_tags) { nil }
   let(:worker) { Mock::Worker.new }
-  let(:job) { { 'enqueued_at' => 1461881794 } }
+  let(:job) { { 'enqueued_at' => 1_461_881_794 } }
   let(:queue) { 'queue_name' }
   let(:error) { nil }
   let(:skip_tags) { nil }
@@ -15,12 +17,12 @@ describe Sidekiq::Datadog::TagBuilder do
     result = subject.build_tags(worker, job, queue, error)
 
     expect(result).to eql([
-      "host:#{Socket.gethostname}",
-      'env:test',
-      'name:mock/worker',
-      'queue:queue_name',
-      'status:ok',
-    ])
+                            "host:#{Socket.gethostname}",
+                            'env:test',
+                            'name:mock/worker',
+                            'queue:queue_name',
+                            'status:ok'
+                          ])
   end
 
   context 'with custom hostname' do
@@ -47,7 +49,7 @@ describe Sidekiq::Datadog::TagBuilder do
 
     it "doesn't output the skipped tags" do
       result = subject.build_tags(worker, job, queue, error)
-      result_keys = result.map {|t| t.split(':').first }
+      result_keys = result.map { |t| t.split(':').first }
 
       expect(result_keys).not_to include('name')
       expect(result_keys).not_to include('env')
